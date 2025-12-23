@@ -445,6 +445,19 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
     }
 }
 
+impl PartialEq for Matrix {
+    fn eq(&self, other: &Self) -> bool {
+        self.entries
+            .iter()
+            .zip(other.entries.iter())
+            .all(|(a, b)| a.iter().zip(b.iter()).all(|(x, y)| x == y))
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !(self == other)
+    }
+}
+
 /// Constructs a matrix with the provided vectors as rows
 #[macro_export]
 macro_rules! matrix {

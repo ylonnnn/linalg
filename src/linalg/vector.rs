@@ -262,6 +262,10 @@ impl PartialEq for Vector {
                 .all(|(a, b)| a == b)
         }
     }
+
+    fn ne(&self, other: &Self) -> bool {
+        !(self == other)
+    }
 }
 
 #[macro_export]
