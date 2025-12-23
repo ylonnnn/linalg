@@ -7,20 +7,23 @@ use crate::linalg::{number::Real, vector::Vector};
 
 #[derive(Debug, thiserror::Error)]
 pub enum MatrixError {
-    #[error("Dimension mismatch: {curr:?} {other:?}")]
+    #[error("dimension mismatch: {curr:?} {other:?}")]
     DimensionMismatch {
         curr: (usize, usize),
         other: (usize, usize),
     },
 
-    #[error("Row-Column Mismatch: {0} : {1}")]
+    #[error("row-column mismatch: {0} : {1}")]
     RowColMismatch(usize, usize),
 
-    #[error("Inconsistent system")]
+    #[error("inconsistent system")]
     Inconsistent,
 
-    #[error("Non-square matrix")]
+    #[error("non-square matrix")]
     NonSquareMatrix,
+
+    #[error("matrix is singular")]
+    Singular,
 }
 
 #[derive(Debug, Clone)]
@@ -147,6 +150,10 @@ impl Matrix {
 
     pub fn is_square(&self) -> bool {
         self.row_size() == self.column_size()
+    }
+
+    pub fn is_singular(&self) -> Result<bool, MatrixError> {
+        Ok(self.gaussian_diagonal_det()? == 0_f64)
     }
 
     pub fn transpose(&self) -> Matrix {
@@ -293,8 +300,8 @@ impl Matrix {
     }
 
     pub fn invert(&self) -> Result<Matrix, MatrixError> {
-        if !self.is_square() {
-            return Err(MatrixError::NonSquareMatrix);
+        if self.is_singular()? {
+            return Err(MatrixError::Singular);
         }
 
         let n = self.row_size();
@@ -346,6 +353,18 @@ impl Matrix {
             }
 
             Ok(det)
+        }
+    }
+
+    pub fn gaussian_diagonal_det(&self) -> Result<f64, MatrixError> {
+        if !self.is_square() {
+            Err(MatrixError::NonSquareMatrix)
+        } else {
+            let mut clone = self.clone();
+            clone.gaussian()?;
+
+            let n = self.row_size();
+            Ok((1..=n).filter_map(|i| self.entry(i, i)).sum::<f64>())
         }
     }
 }
