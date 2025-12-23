@@ -202,12 +202,20 @@ impl Matrix {
                 swaps += 1
             }
 
+            if p_idx >= n {
+                return;
+            }
+
             // Proper pivot searching as pivots are not directly
             // next to each other in terms of columns and rows
             let mut pivot = self.entries[i][p_idx];
             while pivot == 0f64 && p_idx < n {
                 p_idx += 1;
-                pivot = self.entries[i][p_idx];
+                pivot = if p_idx < n {
+                    self.entries[i][p_idx]
+                } else {
+                    0_f64
+                };
             }
 
             if p_idx >= n {
@@ -229,6 +237,7 @@ impl Matrix {
             });
 
             pivots.push(Pivot { pivot, pos: p_idx });
+            p_idx += 1
         });
 
         if self.augmented {
@@ -247,9 +256,8 @@ impl Matrix {
 
     pub fn gauss_jordan(&mut self) -> Result<Vec<Pivot>, MatrixError> {
         let (mut pivots, _) = self.gaussian()?;
-        let m = self.row_size();
 
-        (0..m).rev().for_each(|i| {
+        (0..pivots.len()).rev().for_each(|i| {
             let Pivot { pivot: piv, pos } = &mut pivots[i];
 
             self.elementary(ElementaryOp::II {

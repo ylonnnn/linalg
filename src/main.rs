@@ -10,11 +10,15 @@ use crate::linalg::{
 
 #[allow(unused)]
 fn matrix_test() -> Result<(), MatrixError> {
-    let sample = matrix_c![
+    let mut sample = matrix_c![
         //
         vector![1, 2, 3],
         vector![4, 5, 6],
     ];
+
+    println!("{sample}");
+
+    sample.gauss_jordan()?;
 
     println!("{sample}");
 
@@ -24,17 +28,25 @@ fn matrix_test() -> Result<(), MatrixError> {
 #[allow(unused)]
 fn vector_test() -> Result<(), VectorError> {
     let a = vector![1, 2, 3];
-    let b = vector![4, 5, 6];
+    let b = vector![0, 1, 1];
 
-    if let Ok(sum) = &a + &b {
-        println!("{sum}");
+    if let Ok(unit) = a.unit() {
+        println!("Unit (A): {unit}");
+    }
+
+    if let Ok(unit) = b.unit() {
+        println!("Unit (B): {unit}");
+    }
+
+    if let Ok(angle) = a.angle_between(&b) {
+        println!("Angle: {angle}", angle = angle.to_degrees());
     }
 
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    vector_test()?;
+    matrix_test()?;
 
     Ok(())
 }

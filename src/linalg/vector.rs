@@ -119,7 +119,7 @@ impl Vector {
     }
 
     pub fn magnitude(&self) -> f64 {
-        self.components.iter().sum::<f64>().sqrt()
+        self.components.iter().map(|x| x * x).sum::<f64>().sqrt()
     }
 
     pub fn norm(&self) -> f64 {
@@ -170,6 +170,7 @@ impl fmt::Display for Vector {
 
         for component in self.components.iter() {
             write!(f, "\t{},\n", component.fraction())?;
+            // write!(f, "\t{},\n", component)?;
         }
 
         write!(f, "\n]")
