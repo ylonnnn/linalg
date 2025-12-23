@@ -18,6 +18,9 @@ pub enum MatrixError {
 
     #[error("Inconsistent system")]
     Inconsistent,
+
+    #[error("Non-square matrix")]
+    NonSquareMatrix,
 }
 
 #[derive(Debug, Clone)]
@@ -75,8 +78,13 @@ impl Matrix {
         }
     }
 
-    pub fn identity<const N: usize>() -> Self {
+    #[allow(non_snake_case)]
+    pub fn I<const N: usize>() -> Self {
         Matrix::from_cols((0..N).map(|i| Vector::e::<N>(i + 1)).collect())
+    }
+
+    pub fn identity(n: usize) -> Self {
+        Matrix::from_cols((0..n).map(|i| Vector::standard(n, i + 1)).collect())
     }
 
     pub fn row_size(&self) -> usize {
@@ -282,6 +290,63 @@ impl Matrix {
         });
 
         Ok(pivots)
+    }
+
+    pub fn invert(&self) -> Result<Matrix, MatrixError> {
+        if !self.is_square() {
+            return Err(MatrixError::NonSquareMatrix);
+        }
+
+        let n = self.row_size();
+
+        let mut cols = self.columns(); // cols(A | I^n)
+        cols.extend(Matrix::identity(n).columns());
+
+        // [A | I^n]
+        let mut inv = Matrix::from_cols(cols);
+        inv.gauss_jordan()?;
+
+        // Take A^-1 from [I^n | A^-1] after Gauss-Jordan
+        Ok(Matrix::from_cols(inv.columns().drain(n..(n * 2)).collect()))
+    }
+
+    pub fn cofactor_expansion(&self) -> Result<f64, MatrixError> {
+        if !self.is_square() {
+            return Err(MatrixError::NonSquareMatrix);
+        }
+
+        let n = self.row_size();
+
+        if n == 0 {
+            Ok(1_f64)
+        } else if n == 1 {
+            Ok(self.entries[0][0])
+        } else if n == 2 {
+            Ok((self.entries[0][0] * self.entries[1][1])
+                - (self.entries[0][1] * self.entries[1][0]))
+        } else {
+            let mut det = 0_f64;
+            let top = &self.entries[0];
+
+            for i in 0..n {
+                let cofactor = (if i % 2 == 0 { 1 } else { -1 }) as f64 * top[i];
+
+                let mut columns: Vec<Vector> = Vec::new();
+                (0..n).for_each(|j| {
+                    if i == j {
+                        return;
+                    }
+
+                    if let Some(col) = self.column(j + 1) {
+                        columns.push(Vector::from(col.components().clone().drain(1..n).collect()));
+                    }
+                });
+
+                det += cofactor * Matrix::from_cols(columns).cofactor_expansion()?;
+            }
+
+            Ok(det)
+        }
     }
 }
 

@@ -8,8 +8,8 @@ pub struct Fraction {
 
 impl fmt::Display for Fraction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.denominator == 1 {
-            write!(f, "{}", self.numerator)
+        if self.denominator.abs() == 1 {
+            write!(f, "{}", self.numerator / self.denominator)
         } else {
             write!(f, "{}/{}", self.numerator, self.denominator)
         }

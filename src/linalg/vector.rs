@@ -49,13 +49,17 @@ impl Vector {
     }
 
     pub fn e<const N: usize>(i: usize) -> Self {
-        let mut inst = Vector::new(N);
-        inst.components[i - 1] = 1 as f64;
+        Vector::standard(N, i)
+    }
+
+    pub fn standard(n: usize, i: usize) -> Self {
+        let mut inst = Vector::new(n);
+        inst.components[i - 1] = 1_f64;
 
         inst
     }
 
-    pub fn is_orthogonal_set(set: &Vec<Vector>) -> bool {
+    pub fn is_orthogonal_set(set: &[Vector]) -> bool {
         let n = set.len();
 
         for i in 0..n {
@@ -72,7 +76,7 @@ impl Vector {
         true
     }
 
-    pub fn is_orthonormal_set(set: &Vec<Vector>) -> bool {
+    pub fn is_orthonormal_set(set: &[Vector]) -> bool {
         let n = set.len();
 
         for i in 0..n {
@@ -244,6 +248,19 @@ where
 
     fn div(self, rhs: T) -> Self::Output {
         self * (1.0 / rhs.into())
+    }
+}
+
+impl PartialEq for Vector {
+    fn eq(&self, other: &Self) -> bool {
+        if self.dimension() != other.dimension() {
+            false
+        } else {
+            self.components()
+                .iter()
+                .zip(other.components().iter())
+                .all(|(a, b)| a == b)
+        }
     }
 }
 
