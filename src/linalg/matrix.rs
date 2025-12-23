@@ -102,16 +102,14 @@ impl Matrix {
      * NOTE: `E = true` will exclude the `b` vector components from the row
      */
     pub fn row<const E: bool>(&self, i: usize) -> Option<Vector> {
-        if i <= 0 || i > self.entries.len() {
-            return None;
+        if i == 0 || i > self.entries.len() {
+            None
+        } else {
+            Some(Vector::from_borrowed(
+                &self.entries[i - 1][0..(self.column_size() - ((self.augmented && E) as usize))]
+                    .to_vec(),
+            ))
         }
-
-        if self.augmented {}
-
-        Some(Vector::from_borrowed(
-            &self.entries[i - 1][0..(self.column_size() - ((self.augmented && E) as usize))]
-                .to_vec(),
-        ))
     }
 
     pub fn rows<const E: bool>(&self) -> Vec<Vector> {
@@ -122,16 +120,16 @@ impl Matrix {
 
     pub fn column(&self, j: usize) -> Option<Vector> {
         let n = self.entries[0].len();
-        if j <= 0 || j > n {
-            return None;
+        if j == 0 || j > n {
+            None
+        } else {
+            let mut vec = Vec::new();
+            vec.reserve(n);
+
+            self.entries.iter().for_each(|row| vec.push(row[j - 1]));
+
+            Some(Vector::from(vec))
         }
-
-        let mut vec = Vec::new();
-        vec.reserve(n);
-
-        self.entries.iter().for_each(|row| vec.push(row[j - 1]));
-
-        Some(Vector::from(vec))
     }
 
     pub fn columns(&self) -> Vec<Vector> {
@@ -377,7 +375,7 @@ impl fmt::Display for Matrix {
         } else {
             write!(f, "[ {}x{}\n", self.entries.len(), self.entries[0].len())?;
 
-            for row in self.entries.iter() {
+            for row in &self.entries {
                 for entry in row {
                     write!(f, "\t{},", entry.fraction())?;
                 }
