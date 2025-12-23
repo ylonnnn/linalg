@@ -18,6 +18,17 @@ pub trait Real {
 
 impl Real for f64 {
     fn fraction(&self) -> Fraction {
-        todo!()
+        let mut mult: i64 = 100;
+        let mut base = self.clone() * (mult as f64);
+
+        while base.fract().abs() > f64::EPSILON {
+            base -= self;
+            mult -= 1;
+        }
+
+        Fraction {
+            numerator: base / base,
+            denominator: mult as f64 / base,
+        }
     }
 }

@@ -1,24 +1,40 @@
 mod linalg;
+use std::error::Error;
 
-use linalg::{matrix::Matrix, vector::Vector};
+#[allow(unused)]
+use crate::linalg::{
+    matrix::{Matrix, MatrixError},
+    number::Real,
+    vector::{Vector, VectorError},
+};
 
-use crate::linalg::matrix::MatrixError;
-
-fn main() -> Result<(), MatrixError> {
-    #[allow(unused)]
-    use linalg::matrix::ElementaryOp;
-
-    let mut sample = Matrix::from_rows(vec![
-        Vector::from(vec![1, 2, -1, 1]),  // 1
-        Vector::from(vec![3, 3, 0, 4]),   // 2
-        Vector::from(vec![-1, 0, 2, -3]), // 3
-    ]);
-
-    println!("{sample}");
-
-    sample.gauss_jordan()?;
+#[allow(unused)]
+fn matrix_test() -> Result<(), MatrixError> {
+    let sample = matrix_c![
+        //
+        vector![1, 2, 3],
+        vector![4, 5, 6],
+    ];
 
     println!("{sample}");
+
+    Ok(())
+}
+
+#[allow(unused)]
+fn vector_test() -> Result<(), VectorError> {
+    let a = vector![1, 2, 3];
+    let b = vector![4, 5, 6];
+
+    if let Ok(sum) = &a + &b {
+        println!("{sum}");
+    }
+
+    Ok(())
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    vector_test()?;
 
     Ok(())
 }

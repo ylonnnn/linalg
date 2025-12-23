@@ -3,6 +3,8 @@ use std::{
     ops::{Add, Div, Mul},
 };
 
+use crate::linalg::number::Real;
+
 #[derive(Debug, thiserror::Error)]
 pub enum VectorError {
     #[error("Dimension mismatch")]
@@ -87,7 +89,7 @@ impl Vector {
         true
     }
 
-    pub fn gram_schmidt<const Nm: bool>(set: &Vec<Vector>) -> Vec<Vector> {
+    pub fn gram_schmidt<const NM: bool>(set: &Vec<Vector>) -> Vec<Vector> {
         let n = set.len();
 
         let mut vec = Vec::<Vector>::new();
@@ -167,7 +169,7 @@ impl fmt::Display for Vector {
         write!(f, "[\n")?;
 
         for component in self.components.iter() {
-            write!(f, "\t{},\n", component)?;
+            write!(f, "\t{},\n", component.fraction())?;
         }
 
         write!(f, "\n]")
@@ -242,4 +244,11 @@ where
     fn div(self, rhs: T) -> Self::Output {
         self * (1.0 / rhs.into())
     }
+}
+
+#[macro_export]
+macro_rules! vector {
+    [$($component:expr),* $(,)?] => {
+        Vector::from(vec![$($component),*])
+    };
 }

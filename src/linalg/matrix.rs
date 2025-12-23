@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Mul},
 };
 
-use crate::linalg::vector::Vector;
+use crate::linalg::{number::Real, vector::Vector};
 
 #[derive(Debug, thiserror::Error)]
 pub enum MatrixError {
@@ -279,17 +279,22 @@ impl Matrix {
 
 impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ {}x{}\n", self.entries.len(), self.entries[0].len())?;
+        let n = self.entries.len();
+        if n == 0 {
+            write!(f, "[] {}x{}", n, n)
+        } else {
+            write!(f, "[ {}x{}\n", self.entries.len(), self.entries[0].len())?;
 
-        for row in self.entries.iter() {
-            for entry in row {
-                write!(f, "\t{},", entry)?;
+            for row in self.entries.iter() {
+                for entry in row {
+                    write!(f, "\t{},", entry.fraction())?;
+                }
+
+                write!(f, "\n")?;
             }
 
-            write!(f, "\n")?;
+            write!(f, "\n]")
         }
-
-        write!(f, "\n]")
     }
 }
 
@@ -365,4 +370,20 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
 
         Ok(matrix)
     }
+}
+
+/// Constructs a matrix with the provided vectors as rows
+#[macro_export]
+macro_rules! matrix {
+    [$($vec:expr),* $(,)?] => {
+        Matrix::from_rows(vec![$($vec),*])
+    };
+}
+
+/// Constructs a matrix with the provided vectors as columns
+#[macro_export]
+macro_rules! matrix_c {
+    [$($vec:expr),* $(,)?] => {
+        Matrix::from_cols(vec![$($vec),*])
+    };
 }
