@@ -175,4 +175,35 @@ mod tests {
             assert_eq!(det, sample.cofactor_expansion().unwrap());
         }
     }
+
+    #[test]
+    fn matrix_solve_linear_systems() {
+        let sample = matrix_c![
+            vector![1, 2, 3],
+            vector![1, 2, 3],
+            vector![0, 1, 0],
+            vector![0, 1, 1],
+            vector![1, 0, 2],
+        ];
+
+        // Expected RREF
+        // [1, 1, 0, 0,  1] =     [-1] [-1]
+        // [0, 0, 1, 0, -1] =  =  [ 0] [ 1]
+        // [0, 0, 0, 1,  1] =     [ 0] [-1]
+
+        // x1 = [-x2 - x5]
+        // x2 = [ x2 +  0]
+        // x3 = [  0 + x5]
+        // x4 = [  0 - x5]
+        // x5 = [  0 + x5]
+
+        let sample_b = vector![8, 5, 2];
+        if let Ok(solutions) = sample.solve_linear(sample_b) {
+            solutions.iter().for_each(|sol| {
+                dbg!(&sol);
+            });
+
+            assert!(false);
+        }
+    }
 }

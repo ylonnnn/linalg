@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fmt,
     ops::{Add, Mul},
 };
@@ -24,6 +25,9 @@ pub enum MatrixError {
 
     #[error("matrix is singular")]
     Singular,
+
+    #[error("invalid vector dimension: {0:?}")]
+    InvalidVectorDimension(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -106,7 +110,8 @@ impl Matrix {
             None
         } else {
             Some(Vector::from_borrowed(
-                &self.entries[i - 1][0..(self.column_size() - ((self.augmented && E) as usize))]
+                &self.entries[i - 1]
+                    [0..((self.column_size() + 1) - ((self.augmented && E) as usize))]
                     .to_vec(),
             ))
         }
@@ -159,23 +164,18 @@ impl Matrix {
     }
 
     pub fn elementary(&mut self, op: ElementaryOp) {
-        let _ = 'op: {
-            match op {
-                ElementaryOp::I { i, j } => self.entries.swap(i - 1, j - 1),
-                ElementaryOp::II { i, c } => self.entries[i - 1].iter_mut().for_each(|x| *x *= c),
-                ElementaryOp::III { i, j, c } => {
-                    let row = self.row::<false>(j);
-                    if row.is_none() {
-                        break 'op;
-                    }
-
+        match op {
+            ElementaryOp::I { i, j } => self.entries.swap(i - 1, j - 1),
+            ElementaryOp::II { i, c } => self.entries[i - 1].iter_mut().for_each(|x| *x *= c),
+            ElementaryOp::III { i, j, c } => {
+                if let Some(row) = self.row::<false>(j) {
                     self.entries[i - 1]
                         .iter_mut()
-                        .zip((&row.unwrap() * c).components().iter())
+                        .zip((&row * c).components().iter())
                         .for_each(|(x, y)| *x += y);
                 }
             }
-        };
+        }
     }
 
     pub fn augment(&self, b: Vector) -> Matrix {
@@ -196,6 +196,8 @@ impl Matrix {
 
         let mut p_idx = 0;
         let (m, n) = (self.row_size(), self.column_size());
+
+        println!("{self}");
 
         (0..m).for_each(|i| {
             let mut max_row = i;
@@ -222,7 +224,7 @@ impl Matrix {
             // Proper pivot searching as pivots are not directly
             // next to each other in terms of columns and rows
             let mut pivot = self.entries[i][p_idx];
-            while pivot == 0f64 && p_idx < n {
+            while pivot == 0_f64 && p_idx < n {
                 p_idx += 1;
                 pivot = if p_idx < n {
                     self.entries[i][p_idx]
@@ -245,12 +247,12 @@ impl Matrix {
                 self.elementary(ElementaryOp::III {
                     i: j + 1,
                     j: i + 1,
-                    c: (1f64 / pivot) * -below,
+                    c: -(below / pivot),
                 });
             });
 
             pivots.push(Pivot { pivot, pos: p_idx });
-            p_idx += 1
+            p_idx += 1;
         });
 
         if self.augmented {
@@ -269,6 +271,8 @@ impl Matrix {
 
     pub fn gauss_jordan(&mut self) -> Result<Vec<Pivot>, MatrixError> {
         let (mut pivots, _) = self.gaussian()?;
+
+        println!("{self}");
 
         (0..pivots.len()).rev().for_each(|i| {
             let Pivot { pivot: piv, pos } = &mut pivots[i];
@@ -369,6 +373,48 @@ impl Matrix {
                 .unwrap_or(1_f64)
                 * (-1_i64).pow(swaps as u32) as f64)
         }
+    }
+
+    pub fn solve_linear(&self, b: Vector) -> Result<Vec<Vector>, MatrixError> {
+        let b_dim = b.dimension();
+        if b_dim != self.row_size() {
+            return Err(MatrixError::InvalidVectorDimension(b_dim));
+        }
+
+        let n = self.column_size();
+        let is_homogeneous = b.is_zero();
+
+        let mut augmented = self.augment(b);
+
+        let pivs = augmented.gauss_jordan()?;
+        let pivots =
+            HashMap::<usize, &Pivot>::from_iter(pivs.iter().map(|pivot| (pivot.pos, pivot)));
+
+        println!("{augmented}");
+
+        let mut solutions = Vec::<Vector>::new();
+        solutions.reserve((n - pivots.len()) + (!is_homogeneous) as usize);
+
+        let xp = augmented.column(augmented.column_size() + 1);
+        println!("{}", xp.unwrap());
+
+        (0..n).for_each(|i| {
+            if pivots.get(&i).is_some() {
+                return;
+            }
+
+            let mut soln = vec![0_f64; n];
+            if let Some(col) = augmented.column(i + 1) {
+                pivs.iter()
+                    .zip(col.components().iter())
+                    .for_each(|(piv, comp)| soln[piv.pos] = -*comp);
+            }
+
+            soln[i] = 1_f64;
+            solutions.push(Vector::from(soln));
+        });
+
+        Ok(solutions)
     }
 }
 
