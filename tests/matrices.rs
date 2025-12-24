@@ -160,4 +160,19 @@ mod tests {
 
         assert!(matches!(valid.cofactor_expansion(), Ok(-2_f64)));
     }
+
+    #[test]
+    fn matrix_gaussian_ref_diagonal_det() {
+        let sample = matrix![
+            //
+            vector![1, 1, 2],
+            vector![0, -1, 3],
+            vector![3, -2, 1]
+        ];
+
+        if let Ok(det) = sample.gaussian_diagonal_det() {
+            dbg!(&det, sample.cofactor_expansion().unwrap());
+            assert_eq!(det, sample.cofactor_expansion().unwrap());
+        }
+    }
 }
