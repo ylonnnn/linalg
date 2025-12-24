@@ -359,10 +359,11 @@ impl Matrix {
             Err(MatrixError::NonSquareMatrix)
         } else {
             let mut clone = self.clone();
-            clone.gaussian()?;
+            let (_, swaps) = clone.gaussian()?;
 
             let n = self.row_size();
-            Ok((1..=n).filter_map(|i| self.entry(i, i)).sum::<f64>())
+            Ok((1..=n).filter_map(|i| self.entry(i, i)).sum::<f64>()
+                * (-1_i64).pow(swaps as u32) as f64)
         }
     }
 }
