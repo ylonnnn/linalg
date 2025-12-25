@@ -203,7 +203,7 @@ mod tests {
                 dbg!(&sol);
             });
 
-            assert!(false);
+            assert_eq!(solutions.len(), 3);
         }
     }
 }

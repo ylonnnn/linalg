@@ -110,8 +110,8 @@ impl Matrix {
             None
         } else {
             Some(Vector::from_borrowed(
-                &self.entries[i - 1]
-                    [0..((self.column_size() + 1) - ((self.augmented && E) as usize))]
+                &self.entries[i - 1][0..((self.column_size() + (self.augmented as usize))
+                    - ((self.augmented && E) as usize))]
                     .to_vec(),
             ))
         }
@@ -395,8 +395,19 @@ impl Matrix {
         let mut solutions = Vec::<Vector>::new();
         solutions.reserve((n - pivots.len()) + (!is_homogeneous) as usize);
 
-        let xp = augmented.column(augmented.column_size() + 1);
-        println!("{}", xp.unwrap());
+        // Particular Solution
+        if !is_homogeneous {
+            let mut soln = vec![0_f64; n];
+            if let Some(xp) = augmented.column(augmented.column_size() + 1) {
+                pivs.iter()
+                    .zip(xp.components().iter())
+                    .for_each(|(piv, xc)| {
+                        soln[piv.pos] = *xc;
+                    });
+            }
+
+            solutions.push(Vector::from(soln));
+        }
 
         (0..n).for_each(|i| {
             if pivots.get(&i).is_some() {
