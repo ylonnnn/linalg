@@ -49,10 +49,21 @@ impl Real for f64 {
             mult -= 1;
         }
 
-        let nume = base;
-        let denom = mult as f64;
+        let mut nume = base;
+        let mut denom = mult as f64;
 
         let gcd = nume.gcd(&denom).unwrap_or(1);
+
+        // Normalization
+        if denom.is_sign_negative() {
+            if nume.is_sign_negative() {
+                nume = nume.abs();
+                denom = denom.abs();
+            } else {
+                nume = -nume;
+                denom = denom.abs();
+            }
+        }
 
         Fraction {
             numerator: nume as i64 / gcd,
