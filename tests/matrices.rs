@@ -186,17 +186,6 @@ mod tests {
             vector![1, 0, 2],
         ];
 
-        // Expected RREF
-        // [1, 1, 0, 0,  1] =     [-1] [-1]
-        // [0, 0, 1, 0, -1] =  =  [ 0] [ 1]
-        // [0, 0, 0, 1,  1] =     [ 0] [-1]
-
-        // x1 = [-x2 - x5]
-        // x2 = [ x2 +  0]
-        // x3 = [  0 + x5]
-        // x4 = [  0 - x5]
-        // x5 = [  0 + x5]
-
         let sample_b = vector![8, 5, 2];
         if let Ok(solutions) = sample.solve_linear(sample_b) {
             solutions.iter().for_each(|sol| {
@@ -204,6 +193,40 @@ mod tests {
             });
 
             assert_eq!(solutions.len(), 3);
+        }
+    }
+
+    #[test]
+    fn matrix_column_space() {
+        let sample = matrix_c![
+            vector![2, 1, 3],
+            vector![-3, 0, 1],
+            vector![4, 2, 6],
+            vector![0, 3, 1],
+            vector![3, 2, 0]
+        ];
+
+        if let Ok(space) = sample.column_space() {
+            space.iter().for_each(|col| {
+                println!("{col}");
+            });
+        }
+    }
+
+    #[test]
+    fn matrix_null_space() {
+        let sample = matrix_c![
+            vector![2, 1, 3],
+            vector![-3, 0, 1],
+            vector![4, 2, 6],
+            vector![0, 3, 1],
+            vector![3, 2, 0]
+        ];
+
+        if let Ok(solutions) = sample.null_space() {
+            solutions.iter().for_each(|s| {
+                println!("{s}");
+            });
         }
     }
 }

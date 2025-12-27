@@ -45,7 +45,11 @@ impl Vector {
     }
 
     pub fn zero<const N: usize>() -> Self {
-        Vector::new(N)
+        Vector::zero_nc(N)
+    }
+
+    pub fn zero_nc(n: usize) -> Self {
+        Vector::new(n)
     }
 
     pub fn e<const N: usize>(i: usize) -> Self {

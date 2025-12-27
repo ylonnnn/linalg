@@ -272,8 +272,6 @@ impl Matrix {
     pub fn gauss_jordan(&mut self) -> Result<Vec<Pivot>, MatrixError> {
         let (mut pivots, _) = self.gaussian()?;
 
-        println!("{self}");
-
         (0..pivots.len()).rev().for_each(|i| {
             let Pivot { pivot: piv, pos } = &mut pivots[i];
 
@@ -426,6 +424,24 @@ impl Matrix {
         });
 
         Ok(solutions)
+    }
+
+    pub fn column_space(&self) -> Result<Vec<Vector>, MatrixError> {
+        let mut copy = self.clone();
+        let pivots = copy.gauss_jordan()?;
+
+        let mut space = Vec::<Vector>::new();
+
+        space.reserve(pivots.len());
+        pivots
+            .iter()
+            .for_each(|piv| space.push(self.column(piv.pos + 1).unwrap()));
+
+        Ok(space)
+    }
+
+    pub fn null_space(&self) -> Result<Vec<Vector>, MatrixError> {
+        self.solve_linear(Vector::zero_nc(self.row_size()))
     }
 }
 
